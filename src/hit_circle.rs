@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use serde::Deserialize;
 
+use crate::callback::Callback;
+
 pub const APPROACH_CIRCLE_INITIAL_SCALE: f32 = 2.0;
 
 #[derive(Component)]
@@ -35,27 +37,34 @@ pub fn spawn_circle(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
 ) {
-    commands
-        .spawn((
-            HitCircle,
-            Transform::from_xyz(circle_info.x, circle_info.y, 0.0),
-            Sprite {
-                image: asset_server.load("hitcircle.png"),
-                color: Color::srgba(1.0, 1.0, 1.0, 0.7),
-                ..Default::default()
-            },
-        ))
-        .with_child(Sprite::from_image(asset_server.load("default-1.png")))
-        .with_child(Sprite::from_image(
-            asset_server.load("hitcircleoverlay.png"),
-        ))
-        .with_child((
-            ApproachCircle,
-            ApproachRate(circle_info.approach_rate),
-            Sprite::from_image(asset_server.load("approachcircle.png")),
-            // NOTE: the z axis does nothing in 2d, just splatting for consistency/brevity
-            Transform::default().with_scale(Vec3::splat(APPROACH_CIRCLE_INITIAL_SCALE)),
-        ));
+    let timer = Timer::from_seconds(circle_info.appear_time as f32 / 1000.0, TimerMode::Once);
+    let system_id = commands.register_system(
+        move |mut commands_inner: Commands, asset_server: Res<'_, AssetServer>| {
+            commands_inner
+                .spawn((
+                    HitCircle,
+                    Transform::from_xyz(circle_info.x, circle_info.y, 0.0),
+                    Sprite {
+                        image: asset_server.load("hitcircle.png"),
+                        color: Color::srgba(1.0, 1.0, 1.0, 0.7),
+                        ..Default::default()
+                    },
+                ))
+                .with_child(Sprite::from_image(asset_server.load("default-1.png")))
+                .with_child(Sprite::from_image(
+                    asset_server.load("hitcircleoverlay.png"),
+                ))
+                .with_child((
+                    ApproachCircle,
+                    ApproachRate(circle_info.approach_rate),
+                    Sprite::from_image(asset_server.load("approachcircle.png")),
+                    // NOTE: the z axis does nothing in 2d, just splatting for consistency/brevity
+                    Transform::default().with_scale(Vec3::splat(APPROACH_CIRCLE_INITIAL_SCALE)),
+                ));
+        },
+    );
+
+    commands.spawn(Callback { timer, system_id });
 }
 
 fn shrink_approach_circles(

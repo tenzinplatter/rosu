@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use rosu::{CursorPlugin, HitCirclePlugin, MapPlugin};
+use rosu::{CallbackPlugin, CursorPlugin, HitCirclePlugin, MapPlugin};
 
 fn main() {
     App::new()
@@ -17,5 +17,6 @@ fn main() {
         .add_plugins(HitCirclePlugin)
         .add_plugins(CursorPlugin)
         .add_plugins(MapPlugin)
+        .add_plugins(CallbackPlugin)
         .run();
 }
