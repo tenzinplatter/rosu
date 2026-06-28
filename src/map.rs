@@ -17,7 +17,7 @@ impl Plugin for MapPlugin {
     }
 }
 
-fn parse_all_maps(mut commands: Commands, asset_server: Res<AssetServer>) -> Result {
+fn parse_all_maps(mut commands: Commands) -> Result {
     let map_dir =
         expand_tilde("~/.rosu/maps").context("Failed to expand map dir path at ~/.rosu/maps")?;
     let entries = read_dir(map_dir)?;
@@ -26,7 +26,7 @@ fn parse_all_maps(mut commands: Commands, asset_server: Res<AssetServer>) -> Res
         let path = entry.path();
         if path.is_file() {
             match parse_map_file(&path) {
-                Ok(info) => add_map_to_ecs(&mut commands, &asset_server, info),
+                Ok(info) => add_map_to_ecs(&mut commands, info),
                 Err(e) => tracing::warn!("Failed to read map at {}: {}", path.display(), e),
             }
         }
@@ -43,10 +43,9 @@ fn parse_map_file(map: &Path) -> anyhow::Result<Vec<HitCircleInfo>> {
 
 fn add_map_to_ecs(
     commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
     map_info: Vec<HitCircleInfo>,
 ) {
     for circle in map_info {
-        spawn_circle(circle, commands, asset_server);
+        spawn_circle(circle, commands);
     }
 }
