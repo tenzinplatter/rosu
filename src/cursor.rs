@@ -3,6 +3,8 @@ use bevy::{
     window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
 
+use crate::hit_circle::HitCircle;
+
 #[derive(Component)]
 struct Cursor;
 
@@ -11,7 +13,7 @@ pub struct CursorPlugin;
 impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_cursor)
-            .add_systems(Update, move_cursor);
+            .add_systems(Update, (move_cursor, handle_clicks));
     }
 }
 
@@ -31,6 +33,24 @@ fn setup_cursor(
         Sprite::from_image(asset_server.load("cursor.png")),
         Transform::from_translation(cursor_pos.unwrap_or_default()),
     ));
+}
+
+// TODO: add keys
+fn handle_clicks(
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+    hit_circles: Query<(Entity, &Transform), With<HitCircle>>,
+    window: Single<&Window, With<PrimaryWindow>>,
+    mut commands: Commands,
+) {
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        let cursor = get_cursor_pos(&window).unwrap_or_default();
+        for (circle, transform) in &hit_circles {
+            if HitCircle::cursor_colliding(cursor, transform) {
+                commands.entity(circle).despawn_children();
+                commands.entity(circle).despawn();
+            }
+        }
+    }
 }
 
 fn move_cursor(

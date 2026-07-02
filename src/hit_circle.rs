@@ -38,6 +38,14 @@ impl Plugin for HitCirclePlugin {
     }
 }
 
+impl HitCircle {
+    pub(crate) fn cursor_colliding(cursor_pos: Vec3, t: &Transform) -> bool {
+        const CURSOR_HITBOX_RADIUS: f32 = 10.0;
+        const HIT_CIRCLE_HITBOX_RADIUS: f32 = 20.0;
+        cursor_pos.distance(t.translation) <= CURSOR_HITBOX_RADIUS + HIT_CIRCLE_HITBOX_RADIUS
+    }
+}
+
 pub fn spawn_circle(circle_info: HitCircleInfo, commands: &mut Commands) {
     let timer = Timer::from_seconds(circle_info.appear_time as f32 / 1000.0, TimerMode::Once);
     // register callback to fade in circle
@@ -98,12 +106,17 @@ fn fade_in_hit_circles(
 type ShrinkQuery<'w, 's> = Query<
     'w,
     's,
-    (&'static mut Transform, &'static ApproachRate, Entity),
+    (
+        &'static mut Transform,
+        &'static ApproachRate,
+        &'static ChildOf,
+        Entity,
+    ),
     With<ApproachCircle>,
 >;
 
 fn shrink_approach_circles(mut commands: Commands, mut query: ShrinkQuery, time: Res<Time>) {
-    for (mut transform, ar, entity) in &mut query {
+    for (mut transform, ar, child_of, approach_circle) in &mut query {
         // the difference between initial approach circle size and hit circle size
         let scale_initial_delta = APPROACH_CIRCLE_INITIAL_SCALE - 1.0;
 
@@ -115,7 +128,10 @@ fn shrink_approach_circles(mut commands: Commands, mut query: ShrinkQuery, time:
 
         // NOTE: this relies on the circle being shrunk uniformly
         if transform.scale.x <= 0.95 {
-            commands.entity(entity).despawn();
+            commands.entity(approach_circle).despawn();
+            let hit_circle = child_of.parent();
+            commands.entity(hit_circle).despawn_children();
+            commands.entity(hit_circle).despawn();
         }
     }
 }
