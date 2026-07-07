@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use rosu::{CallbackPlugin, CursorPlugin, HitCirclePlugin, MapPlugin};
+use rosu::{CallbackPlugin, CursorPlugin, HitCirclePlugin, MapPlugin, ScorePlugin};
 
 fn main() {
     App::new()
@@ -14,9 +14,12 @@ fn main() {
         .add_systems(Startup, |mut commands: Commands| {
             commands.spawn(Camera2d);
         })
-        .add_plugins(HitCirclePlugin)
-        .add_plugins(CursorPlugin)
-        .add_plugins(MapPlugin)
-        .add_plugins(CallbackPlugin)
+        .add_plugins((
+            HitCirclePlugin,
+            CursorPlugin,
+            MapPlugin,
+            CallbackPlugin,
+            ScorePlugin,
+        ))
         .run();
 }

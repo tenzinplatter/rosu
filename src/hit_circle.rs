@@ -95,7 +95,7 @@ fn fade_in_hit_circles(
     for (mut sprite, hit_circle) in &mut hit_circles {
         let alpha = &mut sprite.color.to_srgba().alpha;
         if *alpha + alpha_step < FINAL_OPACITY {
-            sprite.color.set_alpha(*alpha + dbg!(alpha_step));
+            sprite.color.set_alpha(*alpha + alpha_step);
         } else {
             commands.entity(hit_circle).remove::<FadingIn>();
             sprite.color.set_alpha(FINAL_OPACITY);
