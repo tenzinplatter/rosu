@@ -7,9 +7,22 @@ use anyhow::Context;
 use bevy::prelude::*;
 use expand_tilde::expand_tilde;
 
-use crate::hit_circle::{HitCircleInfo, spawn_circle};
+use crate::hit_circle::HitCircleInfo;
+
+mod general;
 
 pub struct MapPlugin;
+
+#[derive(Component)]
+pub struct Map;
+
+#[derive(Component)]
+pub struct MapInfo {
+    pub name: String,
+}
+
+#[derive(Component)]
+struct HitCircles(Vec<HitCircleInfo>);
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
@@ -41,11 +54,12 @@ fn parse_map_file(map: &Path) -> anyhow::Result<Vec<HitCircleInfo>> {
     Ok(map_info)
 }
 
-fn add_map_to_ecs(
-    commands: &mut Commands,
-    map_info: Vec<HitCircleInfo>,
-) {
-    for circle in map_info {
-        spawn_circle(circle, commands);
-    }
+fn add_map_to_ecs(commands: &mut Commands, map_info: Vec<HitCircleInfo>) {
+    commands.spawn((
+        Map,
+        MapInfo {
+            name: "map!".to_string(),
+        },
+        HitCircles(map_info),
+    ));
 }

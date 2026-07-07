@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use rosu::{CallbackPlugin, CursorPlugin, HitCirclePlugin, MapPlugin, ScorePlugin};
+use rosu::{CallbackPlugin, CursorPlugin, HitCirclePlugin, MapPlugin, ScorePlugin, UIPlugin};
 
 fn main() {
     App::new()
@@ -15,11 +15,13 @@ fn main() {
             commands.spawn(Camera2d);
         })
         .add_plugins((
-            HitCirclePlugin,
-            CursorPlugin,
-            MapPlugin,
-            CallbackPlugin,
-            ScorePlugin,
+            UIPlugin,
+            // TODO: make these render there things based on UI state
+            // HitCirclePlugin,
+            // CursorPlugin,
+            // MapPlugin,
+            // CallbackPlugin,
+            // ScorePlugin,
         ))
         .run();
 }
