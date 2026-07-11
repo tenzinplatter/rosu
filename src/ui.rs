@@ -6,6 +6,7 @@ use crate::file_parser::{Map, MapInfo};
 const LOGO_INITIAL_SCALE: f32 = 0.4;
 const LOGO_PULSE_DELTA: f32 = 0.05;
 const LOGO_PULSE_TIME_MS: f32 = 400.0;
+const LOGO_GROW_FACTOR: f32 = 1.0;
 
 pub struct UIPlugin;
 
@@ -70,24 +71,25 @@ fn pulse_logo(
 ) {
     let (mut t, mut dir) = logo.into_inner();
     let is_growing = matches!(*dir, LogoPulseDirection::Growing);
-    let growing_speed = if is_growing { 10.0 } else { 1.0 };
+    let growing_speed = if is_growing { LOGO_GROW_FACTOR } else { 1.0 };
     let size_dt = (time.delta().as_millis() as f32 / LOGO_PULSE_TIME_MS)
         * LOGO_PULSE_DELTA
         * growing_speed;
 
-    if is_growing {
-        if t.scale.x >= LOGO_INITIAL_SCALE {
-            t.scale -= size_dt;
-            *dir = LogoPulseDirection::Shrinking;
-        } else {
-            t.scale += size_dt;
-        }
-    } else {
-        if t.scale.x <= LOGO_INITIAL_SCALE - LOGO_PULSE_DELTA {
-            t.scale += size_dt;
-            *dir = LogoPulseDirection::Growing;
-        } else {
-            t.scale -= size_dt;
+    let should_grow = match is_growing {
+        true => t.scale.x < LOGO_INITIAL_SCALE,
+        false => t.scale.x <= LOGO_INITIAL_SCALE - LOGO_PULSE_DELTA,
+    };
+    let should_change_direction = should_grow != (is_growing);
+    
+    match should_grow {
+        true => t.scale += size_dt,
+        false => t.scale -= size_dt,
+    }
+    if should_change_direction {
+        *dir = match *dir {
+            LogoPulseDirection::Growing => LogoPulseDirection::Shrinking,
+            LogoPulseDirection::Shrinking => LogoPulseDirection::Growing,
         }
     }
 }
